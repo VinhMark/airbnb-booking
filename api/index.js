@@ -62,19 +62,26 @@ app.post('/login', async (req, res) => {
     } else {
       res.status(422).json('Password is not matched.');
     }
+  } else {
+    res.json('Not found');
   }
 });
 
 app.get('/profile', (req, res) => {
   const { token } = req.cookies;
   if (token) {
-    jwt.verify(token, jwtSecret, {}, (err, user) => {
+    jwt.verify(token, jwtSecret, {}, async (err, user) => {
       if (err) throw err;
-      res.json(user);
+      const { name, email, _id } = await User.findById(user.id);
+      res.json({ name, email, _id });
     });
   } else {
     res.json(null);
   }
+});
+
+app.post('/logout', (req, res) => {
+  res.cookie('token', '').json(true);
 });
 
 app.listen(4000);
