@@ -4,7 +4,8 @@
 
 input[type='text'],
 input[type='password'],
-input[type='email'] {
+input[type='email'],
+textarea {
   @apply border my-1 px-3 py-2 w-full rounded-2xl;
 }
 
@@ -12,6 +13,6 @@ button {
   @apply bg-gray-300;
 }
 button.primary {
-  background-color: #F5385D;
+  background-color: #f5385d;
   @apply bg-primary p-2 text-white w-full rounded-full mt-1;
-} 
+}
