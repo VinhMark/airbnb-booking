@@ -8,7 +8,6 @@ input[type='email'],
 textarea {
   @apply border my-1 px-3 py-2 w-full rounded-2xl;
 }
-
 button {
   @apply bg-gray-300;
 }
