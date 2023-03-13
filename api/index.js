@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const imageDownloader = require('image-downloader');
+const multer = require('multer');
+const fs = require('fs');
 
 mongoose.connect(process.env.MONGO_URL);
 
@@ -94,6 +96,19 @@ app.post('/upload-by-link', async (req, res) => {
   });
 
   res.json(newName);
+});
+
+const photosMiddleware = multer({ dest: 'uploads/' });
+app.post('/upload', photosMiddleware.array('photo', 100), (req, res) => {
+  const uploadFiles = [];
+  for (let i = 0; i < req.files.length; i++) {
+    const { path, originalname } = req.files[i];
+    const parts = originalname.split('.');
+    const newPath = path + '.' + parts[parts.length - 1];
+    fs.renameSync(path, newPath);
+    uploadFiles.push(newPath.replace('uploads\\', ''));
+  }
+  res.json(uploadFiles);
 });
 
 app.listen(4000);
