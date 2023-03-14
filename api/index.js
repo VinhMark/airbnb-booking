@@ -13,6 +13,7 @@ const fs = require('fs');
 mongoose.connect(process.env.MONGO_URL);
 
 const User = require('./models/User');
+const Place = require('./models/Place');
 
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = 'asdhasjdaldh88789789';
@@ -109,6 +110,41 @@ app.post('/upload', photosMiddleware.array('photo', 100), (req, res) => {
     uploadFiles.push(newPath.replace('uploads\\', ''));
   }
   res.json(uploadFiles);
+});
+
+app.post('/places', (req, res) => {
+  const { token } = req.cookies;
+  const {
+    title,
+    address,
+    addedPhotos,
+    description,
+    perks,
+    extraInfo,
+    checkIn,
+    checkOut,
+    maxGuests,
+  } = req.body;
+
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, async (err, user) => {
+      if (err) throw err;
+      const placeDoc = await Place.create({
+        owr: user.id,
+        title,
+        address,
+        photos: addedPhotos,
+        description,
+        perks,
+        extraInfo,
+        checkIn,
+        checkOut,
+        maxGuests,
+      });
+
+      res.json(placeDoc);
+    });
+  }
 });
 
 app.listen(4000);
