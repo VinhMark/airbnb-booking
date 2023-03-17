@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-const AccountNav = ({ subPage }) => {
+const AccountNav = () => {
+  const { pathname } = useLocation();
+  let subPage = pathname.split('/')[2] || 'profile';
 
   const linkClass = (type = null) => {
     let classes = 'px-6 py-2 inline-flex gap-1 items-center border rounded-full ';

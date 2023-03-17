@@ -5,6 +5,7 @@ const PlaceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+  title: String,
   type: String,
   address: String,
   photos: [String],
@@ -13,6 +14,7 @@ const PlaceSchema = new mongoose.Schema({
   extraInfo: String,
   checkIn: Number,
   checkOut: Number,
+  price: Number,
   maxGuests: Number,
 });
 

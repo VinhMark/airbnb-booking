@@ -5,7 +5,7 @@ import AccountNav from "../AccountNav";
 import { UserContext } from "../UserContext"
 import PlacesPage from "./PlacesPage";
 
-const AccountPage = () => {
+const ProfilePage = () => {
   const { user, setUser } = useContext(UserContext);
   const [redirect, setRedirect] = useState(null);
   let { subPage } = useParams();
@@ -38,4 +38,4 @@ const AccountPage = () => {
   )
 }
 
-export default AccountPage;
+export default ProfilePage;

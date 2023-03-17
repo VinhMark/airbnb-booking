@@ -147,4 +147,64 @@ app.post('/places', (req, res) => {
   }
 });
 
+app.get('/user-places', (req, res) => {
+  const { token } = req.cookies;
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) throw err;
+    const { id } = userData;
+
+    res.json(await Place.find({ owr: id }));
+  });
+});
+
+app.get('/places/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    res.json(await Place.findById(id));
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+app.put('/places', async (req, res) => {
+  const { id, ...place } = req.body;
+  console.log(id);
+  const { token } = req.cookies;
+  try {
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+      if (err) throw err;
+      const placeDoc = await Place.findById(id);
+      if (placeDoc.owr.toString() === userData.id) {
+        placeDoc.set({ ...place, photos: place.addedPhotos });
+        placeDoc.save();
+        res.json('oke');
+      }
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+app.post('/remove-image', (req, res) => {
+  const { token } = req.cookies;
+  jwt.verify(token, jwtSecret, {}, async (err, user) => {
+    if (err) throw err;
+    const userDoc = await User.findById(user.id);
+    if (userDoc) {
+      const photo = req.body;
+      photo.forEach((i) => {
+        fs.unlinkSync(__dirname + '/uploads/' + i, (err) => {
+          if (err) throw err;
+        });
+      });
+      res.json('file deleted');
+    }
+  });
+});
+
+// Index get places
+app.get('/places', async (req, res) => {
+  res.json(await Place.find());
+});
+
 app.listen(4000);

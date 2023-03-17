@@ -1,21 +1,39 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import axios from 'axios';
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import AccountNav from '../AccountNav';
 import Perks from "../Perks";
 import PhotosUploader from "../PhotosUploader";
 
 const PlacesFormPage = () => {
+  const { id } = useParams();
 
-  const [address, setAddress] = useState('this is my address')
-  const [addedPhotos, setAddedPhotos] = useState([])
-  const [description, setDescription] = useState('Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ea molestias suscipit voluptates quae alias amet hic eum cumque unde temporibus molestiae expedita magnam iste, assumenda mollitia doloremque atque aut. Id?')
-  const [perks, setPerks] = useState([])
-  const [extraInfo, setExtraInfo] = useState('Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ea molestias suscipit voluptates quae alias amet hic eum cumque unde temporibus molestiae expedita magnam iste, assumenda mollitia doloremque atque aut. Id?')
-  const [checkIn, setCheckIn] = useState('1400')
-  const [checkOut, setCheckOut] = useState('1700')
-  const [maxGuests, setMaxGuest] = useState('2')
-  const [title, setTitle] = useState('Lorem, ipsum dolor sit amet consectetur')
+  const [photosRemove, setPhotosRemove] = useState([]);
+  const [placeDataForm, setPlaceDataForm] = useState({
+    address: "",
+    addedPhotos: [],
+    description: "",
+    perks: [],
+    extraInfo: "",
+    checkIn: 0,
+    checkOut: 0,
+    maxGuests: 0,
+    price: 0,
+    title: ""
+  })
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (id) {
+      axios.get('/places/' + id).then(res => {
+        const placeRes = res.data;
+        placeRes.addedPhotos = placeRes.photos;
+        setPlaceDataForm(res.data)
+      })
+    }
+  }, [])
+
 
   function preInput(header, description) {
     return (
@@ -26,64 +44,86 @@ const PlacesFormPage = () => {
     )
   }
 
-  async function handleAddPlace(e) {
+  async function handleSavePlace(e) {
     e.preventDefault();
-    const { data } = await axios.post('/places', {
-      title, address, addedPhotos, description, perks, extraInfo, checkIn, checkOut, maxGuests
-    })
-    console.log(data)
+    if (id) {
+      await axios.put('/places', { id, ...placeDataForm });
+    } else {
+      const { data } = await axios.post('/places', placeDataForm)
+      console.log(data)
+    }
+
+    // check delete photo uploaded
+    if (photosRemove) {
+      await axios.post('/remove-image', photosRemove)
+    }
     navigate('/account/places')
+  }
+
+  function handleChangeInput(ev) {
+    setPlaceDataForm(prev => ({ ...prev, [ev.target.name]: ev.target.value }))
   }
 
   return (
     <div>
-      <form onSubmit={handleAddPlace}>
+      <AccountNav />
+      <form onSubmit={handleSavePlace}>
         {/* Title */}
         {preInput('Title', 'Tittle for your place. should be short and catchy as in advertisement.')}
         <input type="text" placeholder="title, for example: My lovely apt"
-          value={title} onChange={ev => setTitle(ev.target.value)}
-        />
+          value={placeDataForm.title} name='title' onChange={handleChangeInput} />
 
         {/* Address */}
         {preInput('Address', 'Address for your place.')}
         <input type="text" placeholder="title, for example: My lovely apt"
-          value={address} onChange={ev => setAddress(ev.target.value)}
-        />
+          name='address' value={placeDataForm.address} onChange={handleChangeInput} />
 
         {/* Photos */}
         {preInput('Photos', 'more = better')}
-        <PhotosUploader addedPhotos={addedPhotos} setAddedPhotos={setAddedPhotos} />
+        <PhotosUploader
+          addedPhotos={placeDataForm.addedPhotos}
+          setPhotosRemove={setPhotosRemove}
+          setAddedPhotos={setPlaceDataForm}
+        />
 
         {/* Description */}
         {preInput('Description', 'Description of place')}
-        <textarea value={description} onChange={ev => setDescription(ev.target.value)} />
+        <textarea value={placeDataForm.description} name="description" onChange={handleChangeInput} />
 
         {/* Perks */}
         {preInput('Perks', 'Perks of place')}
         <div className="grid gap-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          <Perks selected={perks} onChange={setPerks} />
+          <Perks selected={placeDataForm.perks} onChange={setPlaceDataForm} />
         </div>
 
         {/* Perks */}
         {preInput('Check in&out times', 'add check in and out times, remember to some time window cleaning')}
-        <div className="grid sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <h3>Check in time</h3>
-            <input type="text" placeholder="14:00" value={checkIn} onChange={ev => setCheckIn(ev.target.value)} />
+            <input type="number" placeholder="14:00" value={placeDataForm.checkIn} name="checkIn"
+              onChange={handleChangeInput} />
           </div>
           <div>
             <h3>Check out time</h3>
-            <input type="text" placeholder="17:00" value={checkOut} onChange={ev => setCheckOut(ev.target.value)} />
+            <input type="number" placeholder="17:00" value={placeDataForm.checkOut} name="checkOut"
+              onChange={handleChangeInput} />
           </div>
           <div>
             <h3>Max guest</h3>
-            <input type="text" placeholder="2" value={maxGuests} onChange={ev => setMaxGuest(ev.target.value)} />
+            <input type="number" placeholder="2" value={placeDataForm.maxGuests} name="maxGuests"
+              onChange={handleChangeInput} />
           </div>
-        </div>
+          <div>
+            <h3>Price</h3>
+            <input type="number" placeholder="99" value={placeDataForm.price} name="price"
+              onChange={handleChangeInput} />
+          </div>
 
+        </div>
         {/* Extra info */}
         {preInput('Extra info', 'House rules, etc')}
-        <textarea value={extraInfo} onChange={ev => setExtraInfo(ev.target.value)} />
+        <textarea value={placeDataForm.extraInfo} name="extraInfo" onChange={handleChangeInput} />
 
         {/* button */}
         <button className="bg-primary text-white border my-1 px-3 py-2 w-full rounded-2xl">Save</button>
